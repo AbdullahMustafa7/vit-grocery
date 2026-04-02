@@ -39,7 +39,7 @@ export default function AgentDeliveriesPage() {
     }
   }
 
-  const filtered = activeTab === 'all' ? orders : orders.filter(o => filter === 'all' || o.status === filter)
+  const filtered = orders.filter(o => filter === 'all' || o.status === filter)
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-transition">

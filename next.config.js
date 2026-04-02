@@ -1,20 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'source.unsplash.com',
-      'images.unsplash.com',
-      'res.cloudinary.com',
-      'plus.unsplash.com',
-    ],
     remotePatterns: [
       { protocol: 'https', hostname: '**.unsplash.com' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'source.unsplash.com' },
+      { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
     unoptimized: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-  },
+  serverExternalPackages: ['mongoose'],
 }
 module.exports = nextConfig
