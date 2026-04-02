@@ -1,17 +1,16 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { SlidersHorizontal, Grid, List, Search, ChevronDown, X } from 'lucide-react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { SlidersHorizontal, Grid, List, Search, X } from 'lucide-react'
 import axios from 'axios'
 import ProductCard from '@/components/ProductCard'
 import { ProductCardSkeleton } from '@/components/LoadingSkeleton'
 
 export const dynamic = 'force-dynamic'
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
 
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -102,7 +101,6 @@ export default function ProductsPage() {
               )}
             </div>
 
-            {/* Search */}
             <div className="mb-5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Search</label>
               <div className="relative">
@@ -117,7 +115,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Category */}
             <div className="mb-5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Category</label>
               <div className="space-y-1">
@@ -139,7 +136,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Price Range */}
             <div className="mb-5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Price Range (₹)</label>
               <div className="flex gap-2">
@@ -160,7 +156,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Sort */}
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Sort By</label>
               <select
@@ -223,5 +218,19 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {Array.from({ length: 12 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+        </div>
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   )
 }

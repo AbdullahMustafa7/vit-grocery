@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -11,7 +11,7 @@ import OrderTimeline from '@/components/OrderTimeline'
 
 export const dynamic = 'force-dynamic'
 
-export default function OrderDetailPage() {
+function OrderDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
   const isSuccess = searchParams.get('success') === 'true'
@@ -26,7 +26,6 @@ export default function OrderDetailPage() {
       .catch((err) => setError(err.response?.data?.error || 'Failed to load order'))
       .finally(() => setLoading(false))
 
-    // Poll every 30s for status updates
     const interval = setInterval(() => {
       axios.get(`/api/orders/${orderId}`).then(({ data }) => setOrder(data)).catch(() => {})
     }, 30000)
@@ -53,7 +52,6 @@ export default function OrderDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-transition">
-      {/* Success banner */}
       {isSuccess && (
         <div className="flex items-center gap-3 p-5 bg-green-50 border border-green-200 rounded-2xl mb-8 animate-slide-up">
           <CheckCircle className="w-8 h-8 text-green-500 flex-shrink-0" />
@@ -69,9 +67,7 @@ export default function OrderDetailPage() {
           <ArrowLeft className="w-5 h-5 text-green-700" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-green-900">
-            Order #{order._id.slice(-8).toUpperCase()}
-          </h1>
+          <h1 className="text-2xl font-bold text-green-900">Order #{order._id.slice(-8).toUpperCase()}</h1>
           <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
         </div>
         <span className={`ml-auto text-sm px-3 py-1 rounded-full font-medium ${ORDER_STATUS_COLORS[order.status]}`}>
@@ -80,7 +76,6 @@ export default function OrderDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Order Timeline */}
         <div className="bg-white rounded-2xl border border-green-100 p-6">
           <h2 className="font-bold text-green-900 mb-6 flex items-center gap-2">
             <Package className="w-5 h-5 text-green-600" />
@@ -89,9 +84,7 @@ export default function OrderDetailPage() {
           <OrderTimeline status={order.status} />
         </div>
 
-        {/* Order Info */}
         <div className="space-y-4">
-          {/* Delivery Address */}
           <div className="bg-white rounded-2xl border border-green-100 p-5">
             <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-green-600" />
@@ -100,7 +93,6 @@ export default function OrderDetailPage() {
             <p className="text-gray-600 text-sm leading-relaxed">{order.deliveryAddress}</p>
           </div>
 
-          {/* Agent info */}
           {order.agentId && (
             <div className="bg-green-50 rounded-2xl border border-green-200 p-5">
               <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
@@ -119,7 +111,6 @@ export default function OrderDetailPage() {
             </div>
           )}
 
-          {/* Payment */}
           <div className="bg-white rounded-2xl border border-green-100 p-5">
             <h3 className="font-semibold text-green-900 mb-3">Payment Details</h3>
             <div className="space-y-2 text-sm">
@@ -136,7 +127,7 @@ export default function OrderDetailPage() {
                 </span>
               </div>
               <div className="flex justify-between font-bold text-green-900 pt-2 border-t border-green-100">
-                <span>Total Paid</span>
+                <span>Total</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
             </div>
@@ -144,7 +135,6 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Order Items */}
       <div className="mt-6 bg-white rounded-2xl border border-green-100 p-6">
         <h2 className="font-bold text-green-900 mb-5">Order Items ({order.items?.length})</h2>
         <div className="space-y-3">
@@ -171,5 +161,18 @@ export default function OrderDetailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OrderDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
+        <div className="h-8 skeleton rounded w-40 mb-6" />
+        <div className="h-48 skeleton rounded-2xl" />
+      </div>
+    }>
+      <OrderDetailContent />
+    </Suspense>
   )
 }
