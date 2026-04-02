@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Leaf, Mail, Lock, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const callbackUrl = params.get('callbackUrl') || '/'
@@ -59,9 +59,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-green-100 p-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Leaf className="w-7 h-7 text-white" />
@@ -70,7 +68,6 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm mt-1">Sign in to your VIT Grocery account</p>
           </div>
 
-          {/* Auth error */}
           {authError && (
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-6 animate-fade-in">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -79,7 +76,6 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
               <div className="relative">
@@ -90,16 +86,13 @@ export default function LoginPage() {
                   onChange={(e) => handleChange('email', e.target.value)}
                   placeholder="you@example.com"
                   className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-green-400/20 ${
-                    errors.email
-                      ? 'border-red-300 bg-red-50 focus:border-red-400'
-                      : 'border-gray-200 focus:border-green-400'
+                    errors.email ? 'border-red-300 bg-red-50 focus:border-red-400' : 'border-gray-200 focus:border-green-400'
                   }`}
                 />
               </div>
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <div className="relative">
@@ -110,9 +103,7 @@ export default function LoginPage() {
                   onChange={(e) => handleChange('password', e.target.value)}
                   placeholder="Your password"
                   className={`w-full pl-10 pr-10 py-3 rounded-xl border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-green-400/20 ${
-                    errors.password
-                      ? 'border-red-300 bg-red-50 focus:border-red-400'
-                      : 'border-gray-200 focus:border-green-400'
+                    errors.password ? 'border-red-300 bg-red-50 focus:border-red-400' : 'border-gray-200 focus:border-green-400'
                   }`}
                 />
                 <button
@@ -149,7 +140,6 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          {/* Demo accounts */}
           <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-100">
             <p className="text-xs font-semibold text-green-700 mb-2">Demo Accounts:</p>
             <div className="space-y-1 text-xs text-green-600">
@@ -162,5 +152,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

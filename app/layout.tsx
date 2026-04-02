@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
 import Navbar from '@/components/Navbar'
@@ -8,13 +8,16 @@ export const metadata: Metadata = {
   title: 'VIT Grocery – Fresh Groceries Delivered in 30 Minutes',
   description: 'Order fresh fruits, vegetables, dairy, and more from VIT Grocery. Fast delivery, great prices.',
   manifest: '/manifest.json',
-  themeColor: '#16a34a',
   keywords: ['grocery', 'delivery', 'fresh food', 'VIT', 'online grocery'],
   openGraph: {
     title: 'VIT Grocery',
     description: 'Fresh groceries delivered in 30 minutes',
     type: 'website',
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#16a34a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
