@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#16a34a"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vitgrocery.app"
@@ -27,15 +29,27 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store"
+    ],
     "scheme": "vitgrocery",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
-      }
+        "projectId": "2c34df79-2e4c-4108-9557-49c4c68b97ba"
+      },
+      "router": {}
+    },
+    "owner": "abdullahmustafa7",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/2c34df79-2e4c-4108-9557-49c4c68b97ba"
     }
   }
 }

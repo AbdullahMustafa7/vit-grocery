@@ -105,9 +105,9 @@ export default function ProductDetail() {
         </View>
 
         <TouchableOpacity
-          style={[styles.addButton, (adding || !product.inStock) && styles.addButtonDisabled]}
+          style={[styles.addButton, (adding || product.stock === 0) && styles.addButtonDisabled]}
           onPress={addToCart}
-          disabled={adding || !product.inStock}
+          disabled={adding || product.stock === 0}
         >
           {adding ? (
             <ActivityIndicator color="#fff" size="small" />
@@ -115,7 +115,7 @@ export default function ProductDetail() {
             <>
               <Ionicons name="cart-outline" size={20} color="#fff" />
               <Text style={styles.addButtonText}>
-                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
               </Text>
             </>
           )}

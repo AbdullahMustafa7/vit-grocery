@@ -1,27 +1,24 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongoose'
-import { Order, Product, User, Vendor } from '@/lib/models'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { Order, Product, Vendor } from '@/lib/models'
+import { getUser } from '@/lib/mobileAuth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'vendor') {
+    const user = await getUser(req)
+    if (!user || user.role !== 'vendor') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     await connectDB()
-    const vendor = await Vendor.findOne({ userId: session.user.id })
+    const vendor = await Vendor.findOne({ userId: user.id })
     if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
 
-    // Get all product IDs that belong to this vendor
     const vendorProducts = await Product.find({ vendorId: vendor._id }).select('_id').lean()
     const productIds = vendorProducts.map((p: any) => p._id)
 
-    // Find orders either tagged with this vendorId OR containing vendor's products
     const orders = await Order.find({
       $or: [
         { vendorId: vendor._id },

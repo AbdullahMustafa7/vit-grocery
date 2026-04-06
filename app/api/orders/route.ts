@@ -1,26 +1,25 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongoose'
 import { Order, Product, User, Vendor, DeliveryAgent } from '@/lib/models'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getUser } from '@/lib/mobileAuth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
-    const role = session.user.role
+    const role = user.role
     const query: any = {}
 
     if (role === 'customer') {
-      query.customerId = session.user.id
+      query.customerId = user.id
     } else if (role === 'admin') {
       // all orders
     } else {
-      query.customerId = session.user.id
+      query.customerId = user.id
     }
 
     const orders = await Order.find(query)
@@ -39,15 +38,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
     const body = await req.json()
     const { items, deliveryAddress, stripePaymentIntentId, total, paymentMethod } = body
     const isCOD = paymentMethod === 'cod'
 
-    // Auto-derive vendorId from the first product in the order
     let vendorId = body.vendorId
     if (!vendorId && items?.length > 0) {
       const firstProduct = await Product.findById(items[0].productId).select('vendorId').lean() as any
@@ -55,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     const order = await Order.create({
-      customerId: session.user.id,
+      customerId: user.id,
       vendorId,
       items,
       deliveryAddress,

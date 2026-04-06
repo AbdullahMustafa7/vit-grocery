@@ -31,10 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    AsyncStorage.getItem('token').then((t) => {
+    AsyncStorage.getItem('vitgrocery_token').then((t) => {
       if (t) {
         setToken(t)
-        AsyncStorage.getItem('user').then((u) => {
+        AsyncStorage.getItem('vitgrocery_user').then((u) => {
           if (u) setUser(JSON.parse(u))
         })
       }
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = async () => {
-    await AsyncStorage.multiRemove(['token', 'user'])
+    await AsyncStorage.multiRemove(['vitgrocery_token', 'vitgrocery_user'])
     setToken(null)
     setUser(null)
   }

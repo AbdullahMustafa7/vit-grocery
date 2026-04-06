@@ -1,20 +1,36 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity, TextInput,
-  StyleSheet, Image, ActivityIndicator, RefreshControl,
+  StyleSheet, Image, ActivityIndicator, RefreshControl, Alert,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { api, COLORS, formatPrice, SHADOWS } from '@/utils/api'
+import { useAuth } from '@/context/AuthContext'
 
 export default function ProductsScreen() {
   const router = useRouter()
   const params = useLocalSearchParams()
+  const { user } = useAuth()
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [addingId, setAddingId] = useState<string | null>(null)
+
+  const addToCart = async (productId: string) => {
+    if (!user) { router.push('/login'); return }
+    setAddingId(productId)
+    try {
+      await api.post('/api/cart', { productId, quantity: 1 })
+      Alert.alert('Added!', 'Item added to cart.')
+    } catch {
+      Alert.alert('Error', 'Failed to add to cart')
+    } finally {
+      setAddingId(null)
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 500)
@@ -68,9 +84,13 @@ export default function ProductsScreen() {
           </View>
           <TouchableOpacity
             style={[styles.addBtn, item.stock === 0 && styles.addBtnDisabled]}
-            disabled={item.stock === 0}
+            disabled={item.stock === 0 || addingId === item._id}
+            onPress={() => addToCart(item._id)}
           >
-            <Ionicons name="add" size={18} color={item.stock === 0 ? '#9ca3af' : '#fff'} />
+            {addingId === item._id
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <Ionicons name="add" size={18} color={item.stock === 0 ? '#9ca3af' : '#fff'} />
+            }
           </TouchableOpacity>
         </View>
       </View>

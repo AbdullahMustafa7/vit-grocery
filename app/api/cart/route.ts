@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongoose'
 import { Cart, Product, Category } from '@/lib/models'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getUser } from '@/lib/mobileAuth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
-    const cart = await Cart.findOne({ userId: session.user.id })
+    const cart = await Cart.findOne({ userId: user.id })
       .populate({
         path: 'items.productId',
         populate: { path: 'categoryId', select: 'name' },
@@ -27,16 +26,16 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
     const { productId, quantity = 1 } = await req.json()
 
-    let cart = await Cart.findOne({ userId: session.user.id })
+    let cart = await Cart.findOne({ userId: user.id })
 
     if (!cart) {
-      cart = new Cart({ userId: session.user.id, items: [] })
+      cart = new Cart({ userId: user.id, items: [] })
     }
 
     const existingIdx = cart.items.findIndex(
@@ -60,13 +59,13 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
     const { productId, quantity } = await req.json()
 
-    const cart = await Cart.findOne({ userId: session.user.id })
+    const cart = await Cart.findOne({ userId: user.id })
     if (!cart) return NextResponse.json({ error: 'Cart not found' }, { status: 404 })
 
     if (quantity <= 0) {
@@ -88,15 +87,15 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await getUser(req)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectDB()
     const { searchParams } = new URL(req.url)
     const productId = searchParams.get('productId')
     const clearAll = searchParams.get('clearAll')
 
-    const cart = await Cart.findOne({ userId: session.user.id })
+    const cart = await Cart.findOne({ userId: user.id })
     if (!cart) return NextResponse.json({ message: 'Cart already empty' })
 
     if (clearAll === 'true') {
