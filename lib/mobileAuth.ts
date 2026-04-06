@@ -3,11 +3,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { verify } from 'jsonwebtoken'
 
 export async function getUser(req: Request) {
-  // Try NextAuth session first (web)
-  const session = await getServerSession(authOptions)
-  if (session?.user) return session.user
-
-  // Try Bearer token (mobile)
+  // Try Bearer token first (mobile) — faster and avoids cookie issues
   const authHeader = req.headers.get('authorization')
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
@@ -16,5 +12,12 @@ export async function getUser(req: Request) {
       return { id: decoded.id, email: decoded.email, role: decoded.role, name: decoded.name }
     } catch {}
   }
+
+  // Fall back to NextAuth session (web)
+  try {
+    const session = await getServerSession(authOptions)
+    if (session?.user) return session.user
+  } catch {}
+
   return null
 }

@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongoose'
-import { Order, Product, Vendor, User, DeliveryAgent } from '@/lib/models'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { Order, DeliveryAgent } from '@/lib/models'
+import { getUser } from '@/lib/mobileAuth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'agent') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'agent') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const agent = await DeliveryAgent.findOne({ userId: session.user.id })
+    const agent = await DeliveryAgent.findOne({ userId: user.id })
     if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
 
     const { searchParams } = new URL(req.url)
@@ -22,7 +19,6 @@ export async function GET(req: Request) {
 
     let query: any = {}
     if (type === 'available') {
-      // Match orders that are ready and have no agent assigned (null or field missing entirely)
       query = { status: 'ready', $or: [{ agentId: null }, { agentId: { $exists: false } }] }
     } else {
       query = { agentId: agent._id }
@@ -43,13 +39,11 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'agent') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'agent') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const agent = await DeliveryAgent.findOne({ userId: session.user.id })
+    const agent = await DeliveryAgent.findOne({ userId: user.id })
     if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
 
     const { orderId, action } = await req.json()

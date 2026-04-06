@@ -1,25 +1,17 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongoose'
-import { Product, Category, Vendor } from '@/lib/models'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { Product, Vendor } from '@/lib/models'
+import { getUser } from '@/lib/mobileAuth'
 
 export const dynamic = 'force-dynamic'
 
-async function getVendor(session: any) {
-  const vendor = await Vendor.findOne({ userId: session.user.id })
-  return vendor
-}
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'vendor') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'vendor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const vendor = await getVendor(session)
+    const vendor = await Vendor.findOne({ userId: user.id })
     if (!vendor) return NextResponse.json({ error: 'Vendor not found' }, { status: 404 })
 
     const products = await Product.find({ vendorId: vendor._id })
@@ -35,13 +27,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'vendor') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'vendor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const vendor = await getVendor(session)
+    const vendor = await Vendor.findOne({ userId: user.id })
     if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 })
 
     const body = await req.json()
@@ -52,10 +42,8 @@ export async function POST(req: Request) {
     }
 
     const product = await Product.create({
-      name,
-      description,
-      price: Number(price),
-      stock: Number(stock),
+      name, description,
+      price: Number(price), stock: Number(stock),
       categoryId: categoryId || undefined,
       imageUrl: imageUrl || `https://source.unsplash.com/300x300/?${encodeURIComponent(name)},food`,
       vendorId: vendor._id,
@@ -69,18 +57,15 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'vendor') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'vendor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const vendor = await getVendor(session)
+    const vendor = await Vendor.findOne({ userId: user.id })
     if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 })
 
     const body = await req.json()
     const { id, name, description, price, stock, categoryId, imageUrl } = body
-
     if (!id) return NextResponse.json({ error: 'Product id is required' }, { status: 400 })
 
     const product = await Product.findOne({ _id: id, vendorId: vendor._id })
@@ -104,13 +89,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user.role !== 'vendor') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const user = await getUser(req)
+    if (!user || user.role !== 'vendor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     await connectDB()
-    const vendor = await getVendor(session)
+    const vendor = await Vendor.findOne({ userId: user.id })
     if (!vendor) return NextResponse.json({ error: 'Vendor profile not found' }, { status: 404 })
 
     const { searchParams } = new URL(req.url)
